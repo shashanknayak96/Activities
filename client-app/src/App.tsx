@@ -1,34 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
-import axios from 'axios';
-import { Header, Icon } from 'semantic-ui-react'
-
+import { Container } from 'semantic-ui-react'
+import NavBar from './components/navbar/navbar';
+import ActivityDashboard from './components/dashboard/ActivityDashboard';
+import LoadingComponent from './components/loader/LoadingComponent';
+import { useStore } from './store/store';
+import { observer } from 'mobx-react-lite';
 
 function App() {
-
-  const [activities, setActivities] = useState([1, 2, 3]);
+  const {activityStore} = useStore();
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/activities')
-      .then((response: any) => {
-        console.log(response.data);
-        setActivities(response.data);
-      })
-  }, [])
+    activityStore.loadActivities();
+  }, [activityStore])
+ 
+  if (activityStore.loadingInitial) return <LoadingComponent />
 
   return (
-    <div>
-      <Header as='h2'>
-        <Icon name='plug' />
-        <Header.Content>Activities</Header.Content>
-      </Header>
-      <ul>
-        {activities.map((activity: any) => {
-          return (<li>{activity.description}</li>)
-        })}
-      </ul>
-    </div>
+
+    <>
+      <NavBar />
+      <Container style={{ marginTop: '7em' }}>
+        <ActivityDashboard
+          activities={activityStore.getActivitiesByDate}
+        />
+      </Container>
+    </>
   );
 }
 
-export default App;
+export default observer(App);
