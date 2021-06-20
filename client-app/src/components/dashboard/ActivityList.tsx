@@ -1,5 +1,6 @@
-import { observer } from 'mobx-react-lite';
 import react, { SyntheticEvent, useState } from 'react';
+import { observer } from 'mobx-react-lite';
+import { Link } from 'react-router-dom';
 import { Segment, Item, Button, Label } from 'semantic-ui-react';
 import { Activity } from '../../models/activity';
 import { useStore } from '../../store/store';
@@ -8,25 +9,21 @@ interface Props {
     activities: Activity[],
 }
 
-export default observer(function ActivityList({ 
-    activities,
-}: Props) {
-
-    const {activityStore} = useStore();
-    const {deleteActivity, loading : isSubmitting} = activityStore;
-    
+export default observer(function ActivityList({ activities, }: Props) {
+    const { activityStore } = useStore();
+    const { deleteActivity, loading: isSubmitting } = activityStore;
 
     const [target, setTarget] = useState(''); //Used to handle loading effect on delete button
 
-    function handleDeleteActivity(e: SyntheticEvent<HTMLButtonElement>, id:string){
+    function handleDeleteActivity(e: SyntheticEvent<HTMLButtonElement>, id: string) {
         setTarget(e.currentTarget.name);
         deleteActivity(id);
     }
 
-    function handleViewButton(id: string){
-        activityStore.selectActivity(id);
-        activityStore.closeForm();
-    }
+    // function handleViewButton(id: string) {
+    //     activityStore.selectActivity(id);
+    //     activityStore.closeForm();
+    // }
 
     return (
         <Segment>
@@ -46,7 +43,9 @@ export default observer(function ActivityList({
                             </Item.Description>
                             <Item.Extra>
                                 <Button
-                                    onClick={() => { handleViewButton(activity.id);} }
+                                    as={Link} 
+                                    to={`/activities/${activity.id}`}
+                                    // onClick={() => { handleViewButton(activity.id); }}
                                     floated='right'
                                     content='View'
                                     color='blue' />

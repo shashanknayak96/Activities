@@ -1,15 +1,22 @@
+import { observer } from 'mobx-react-lite';
 import react from 'react';
+import { useEffect } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { Card, Image, Button } from 'semantic-ui-react';
-import { Activity } from '../../models/activity';
 import { useStore } from '../../store/store';
 import LoadingComponent from '../loader/LoadingComponent';
 
-export default function ActivityDetail() {
+export default observer(function ActivityDetail() {
 
     const { activityStore } = useStore();
-    const { selectedActivity: activity} = activityStore;
+    const { selectedActivity: activity, loadActivity, loadingInitial} = activityStore;
+    const {id} = useParams<{id: string}>();
 
-    if(!activity) return <LoadingComponent />;
+    useEffect(() => {
+        if(id) loadActivity(id);
+    }, [id, loadActivity])
+
+    if(loadingInitial || !activity) return <LoadingComponent />;
 
     return (
         <Card fluid>
@@ -25,10 +32,22 @@ export default function ActivityDetail() {
             </Card.Content>
             <Card.Content extra>
                 <Button.Group widths='2'>
-                    <Button onClick={() => activityStore.openForm(activity.id)} basic color='blue' content='Edit' />
-                    <Button onClick={() => activityStore.cancelSelectedActivity()} basic color='grey' content='Cancel' />
+                    <Button 
+                        // onClick={() => activityStore.openForm(activity.id)} 
+                        as={Link}
+                        to={`/manage/${activity.id}`}
+                        basic 
+                        color='blue' 
+                        content='Edit' />
+                    <Button 
+                        // onClick={() => activityStore.cancelSelectedActivity()} 
+                        as={Link}
+                        to="/activities"
+                        basic 
+                        color='grey' 
+                        content='Cancel' />
                 </Button.Group>
             </Card.Content>
         </Card>
     )
-}
+});

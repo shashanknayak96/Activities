@@ -1,8 +1,10 @@
+import react, { useState, ChangeEvent, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import react, { useState, ChangeEvent } from 'react';
+import { useHistory, useParams } from 'react-router-dom';
 import { Segment, Form, Button } from 'semantic-ui-react';
-import { Activity } from '../../models/activity';
 import { useStore } from '../../store/store';
+import LoadingComponent from '../loader/LoadingComponent';
+import {v4 as uuid} from 'uuid';
 
 interface Props {
     isSubmitting: boolean
@@ -11,9 +13,9 @@ interface Props {
 export default observer(function ActivityForm() {
 
     const {activityStore} = useStore();
-    const {loading, createActivity, updateActivity} = activityStore;
-
-    const initialState =  activityStore.selectedActivity ?? {
+    const {loading, createActivity, updateActivity, loadActivity, loadingInitial} = activityStore;
+    const {id} = useParams<{id: string}>();
+    const [activity, setActivity] = useState({
         id: '',
         title: '', 
         date: '',
@@ -21,9 +23,12 @@ export default observer(function ActivityForm() {
         category: '',
         city: '',
         venue: ''
-    }
+    });
+    const history = useHistory();
 
-    const [activity, setActivity] = useState(initialState);
+    useEffect(()=> {
+        if(id) loadActivity(id).then(activity => setActivity(activity!))
+    }, [id, loadActivity]);
 
     function handleOnChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
         const { name, value } = event.target;
@@ -31,8 +36,19 @@ export default observer(function ActivityForm() {
     }
 
     function handleSubmit(){
+        if(activity.id.length === 0){
+            const newActivity = {
+                ...activity,
+                id: uuid()
+            }
+            createActivity(newActivity).then(() => history.push(`/activities/${newActivity.id}`));
+        }else{
+            updateActivity(activity).then(() => history.push(`/activities/${activity.id}`));
+        }
         activity.id ? updateActivity(activity) : createActivity(activity);
     }
+
+    if(loadingInitial) return <LoadingComponent content="Loading activity..."/>
 
     return (
         <Segment clearing>
@@ -51,7 +67,7 @@ export default observer(function ActivityForm() {
                     content="Submit"
                 />
                 <Button
-                    onClick={() => { activityStore.closeForm() }}
+                    // onClick={() => { activityStore.closeForm() }}
                     floated="right" 
                     type="button" 
                     content="Cancel" 
